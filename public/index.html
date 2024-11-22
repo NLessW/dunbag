@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DunBag</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link href="/css/style.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-900 text-white p-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- 검색 섹션 -->
+      <div class="mb-8">
+        <h1 class="text-5xl font-bold mb-4">DUNBAG</h1>
+        <div class="flex gap-4 mb-6">
+          <button
+            class="menu-btn px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg w-32 transition-colors duration-200"
+            data-menu="normal"
+            onclick="selectMenu('normal')"
+          >
+            일반
+          </button>
+          <button
+            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200"
+            data-menu="raid"
+            onclick="selectMenu('raid')"
+          >
+            레이드
+          </button>
+          <button
+            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200"
+            data-menu="legion"
+            onclick="selectMenu('legion')"
+          >
+            레기온
+          </button>
+        </div>
+        <div class="flex gap-2">
+          <select
+            class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500"
+            id="server-select"
+          >
+            <option value="" disabled selected>서버 선택</option>
+            <option value="cain">카인</option>
+            <option value="diregie">디레지에</option>
+            <option value="siroco">시로코</option>
+            <option value="prey">프레이</option>
+            <option value="casillas">카시야스</option>
+            <option value="hilder">힐더</option>
+            <option value="anton">안톤</option>
+            <option value="bakal">바칼</option>
+          </select>
+          <input
+            type="text"
+            placeholder="캐릭터명을 입력하세요"
+            class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500"
+            id="character-input"
+          />
+          <button
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200"
+            id="searchBtn"
+          >
+            검색
+          </button>
+        </div>
+        <!-- 로딩 및 에러 메시지 -->
+        <div id="status-message" class="mt-2 text-center hidden">
+          <div
+            class="animate-spin inline-block w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full"
+          ></div>
+          <span class="ml-2">검색 중...</span>
+        </div>
+        <div
+          id="error-message"
+          class="mt-2 text-red-500 text-center hidden"
+        ></div>
+      </div>
+
+      <!-- 검사 결과 -->
+      <div
+        id="results-container"
+        class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"
+      >
+        <div class="bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">무기</h2>
+          <div class="space-y-3" id="weapon-stats"></div>
+        </div>
+        <div class="bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">방어구</h2>
+          <div class="space-y-3" id="armor-stats"></div>
+        </div>
+        <!-- 악세서리 섹션 -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">악세서리</h2>
+            <div class="space-y-3" id="accessory-stats"></div>
+          </div>
+  
+          <!-- 특수장비 섹션 -->
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">특수장비</h2>
+            <div class="space-y-3" id="special-stats"></div>
+          </div>
+  
+          <!-- 스위칭 섹션 -->
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">스위칭</h2>
+            <div class="space-y-3" id="switch-Buff"></div>
+          </div>
+  
+          <!-- 세팅 섹션 -->
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">세팅</h2>
+            <div class="space-y-3" id="set-equipment"></div>
+          </div>
+        </div>
+  
+        <!-- 전체 요약 -->
+        <div id="summary" class="mt-6 bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">종합 평가</h2>
+          <div class="flex gap-4">
+            <div class="flex-1 p-3 bg-blue-600 rounded-lg text-center">
+              <div class="text-sm">던담 딜</div>
+              <div class="text-2xl font-bold" id="power-score">-</div>
+            </div>
+            <div class="flex-1 p-3 bg-red-600 rounded-lg text-center">
+              <div class="text-sm">부족한 항목</div>
+              <div class="text-2xl font-bold" id="missing-items">-</div>
+            </div>
+            <div class="flex-1 p-3 bg-green-600 rounded-lg text-center">
+              <div class="text-sm">크리티컬</div>
+              <div class="text-2xl font-bold" id="estimated-gold">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/script.js"></script>
+  </body>
+</html>

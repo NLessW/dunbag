@@ -1,0 +1,18 @@
+@font-face {
+  font-family: "DNFForgedBlade";
+  font-style: normal;
+  font-weight: 700;
+  src: url("//cdn.df.nexon.com/img/common/font/DNFForgedBlade-Bold.otf")
+    format("opentype");
+}
+
+body {
+  align-items: center;
+}
+
+h1,
+.mainTitle {
+  font-family: "DNFForgedBlade", sans-serif;
+  text-align: center;
+  font-size: 4em;
+}
