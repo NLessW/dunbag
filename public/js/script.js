@@ -175,13 +175,40 @@ document.addEventListener("DOMContentLoaded", function () {
     return "미달";
   }
 
+  function checkSpecial(special) {
+    const enchantStatus = special.enchant?.status;
+    const allAttrEnchant = enchantStatus.find(
+      (status) => status.name === "모든 속성 강화"
+    );
+    if (special.slotName === "보조장비") {
+      if (!enchantStatus) return "미달";
+      if (!allAttrEnchant) return "미달";
+      const enchantValue = Number(allAttrEnchant.value);
+      return enchantValue >= 12 ? "종결" : "미달";
+    } else if (special.slotName === "마법석") {
+      const enchantValue = Number(allAttrEnchant.value);
+      if (enchantValue === 35) return "종결";
+      if (enchantValue === 30) return "준종결";
+      else return "미달";
+    } else if (special.slotName === "귀걸이") {
+      const enchantValue = Number(allAttrEnchant.value);
+      if (enchantValue === 15) return "종결";
+      if (enchantValue === 11) return "준종결";
+      else return "미달";
+    }
+    return "미달";
+  }
+
   function displayResults(equipment) {
     const weaponStats = document.getElementById("weapon-stats");
     const armorStats = document.getElementById("armor-stats");
     const accessStats = document.getElementById("accessory-stats");
+    const specialStats = document.getElementById("special-stats");
+
     weaponStats.innerHTML = "";
     armorStats.innerHTML = "";
     accessStats.innerHTML = "";
+    specialStats.innerHTML = "";
 
     const weapons = equipment.filter((item) => item.itemType === "무기");
     weapons.forEach((weapon) => {
@@ -249,6 +276,14 @@ document.addEventListener("DOMContentLoaded", function () {
       accessStats.appendChild(itemDiv);
     });
 
+    const addEquip = equipment.filter((item) => item.itemType === "추가장비");
+    addEquip.forEach((special) => {
+      const evaluation = checkSpecial(special);
+      const itemDiv = document.createElement("div");
+      itemDiv.classList.add("p-2", "bg-gray-700", "rounded-lg", "mb-2");
+      itemDiv.innerHTML = `${special.itemName} - <span class="font-bold">${evaluation}</span>`;
+      specialStats.appendChild(itemDiv);
+    });
     document.getElementById("results-container").classList.remove("hidden");
   }
 

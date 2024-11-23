@@ -24,14 +24,14 @@
             일반
           </button>
           <button
-            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200"
+            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200 hidden"
             data-menu="raid"
             onclick="selectMenu('raid')"
           >
             레이드
           </button>
           <button
-            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200"
+            class="menu-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg w-32 transition-colors duration-200 hidden"
             data-menu="legion"
             onclick="selectMenu('legion')"
           >
@@ -94,29 +94,38 @@
         </div>
         <!-- 악세서리 섹션 -->
         <div class="bg-gray-800 p-4 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">악세서리</h2>
-            <div class="space-y-3" id="accessory-stats"></div>
-          </div>
-  
-          <!-- 특수장비 섹션 -->
-          <div class="bg-gray-800 p-4 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">특수장비</h2>
-            <div class="space-y-3" id="special-stats"></div>
-          </div>
-  
-          <!-- 스위칭 섹션 -->
-          <div class="bg-gray-800 p-4 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">스위칭</h2>
-            <div class="space-y-3" id="switch-Buff"></div>
-          </div>
-  
-          <!-- 세팅 섹션 -->
-          <div class="bg-gray-800 p-4 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">세팅</h2>
-            <div class="space-y-3" id="set-equipment"></div>
-          </div>
+          <h2 class="text-xl font-bold mb-4">악세서리</h2>
+          <div class="space-y-3" id="accessory-stats"></div>
         </div>
-  
+
+        <!-- 특수장비 섹션 -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">특수장비</h2>
+          <div class="space-y-3" id="special-stats"></div>
+        </div>
+
+        <!-- 스위칭 섹션 -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">스위칭</h2>
+          <div class="space-y-3" id="switch-Buff"></div>
+        </div>
+
+        <!-- 세팅 섹션 -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+          <h2 class="text-xl font-bold mb-4">세팅</h2>
+          <div class="space-y-3" id="set-equipment"></div>
+        </div>
+      </div>
+      <div
+        id="raid-container"
+        class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"
+      ></div>
+      <div
+        id="region-container"
+        class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"
+      ></div>
+
+
         <!-- 전체 요약 -->
         <div id="summary" class="mt-6 bg-gray-800 p-4 rounded-lg">
           <h2 class="text-xl font-bold mb-4">종합 평가</h2>
