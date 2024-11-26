@@ -198,17 +198,84 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return "미달";
   }
+  function checkSetName(weapon, access, armor) {
+    if (!weapon || !access || !armor) {
+      return "알 수 없는 세팅";
+    }
 
+    console.log(armor);
+    if (
+      (weapon.itemName && weapon.itemName.includes("木")) ||
+      (weapon.itemName && weapon.itemName.includes("첫 새싹"))
+    )
+      return "각몰";
+    if (
+      access.itemName.includes("딥 다이버 워치") &&
+      (!access.itemName.includes("木") || !access.itemName.includes("첫 새싹"))
+    ) {
+      return "딥다팔";
+    }
+
+    if (
+      access.slotName === "팔찌" &&
+      access.itemName.includes("흑화의 구속 팔찌") &&
+      armor.slotName === "신발" &&
+      armor.itemName.includes("경계를 넘어선 차원")
+    ) {
+      return "TP출혈";
+    }
+    if (
+      access.slotName === "팔찌" &&
+      access.itemName.includes("흑화의 구속 팔찌")
+    ) {
+      return "출혈";
+    }
+
+    if (
+      access.slotName === "팔찌" &&
+      access.itemName.includes("생명이 담긴 가죽 토시") &&
+      armor.slotName === "신발" &&
+      armor.itemName.includes("경계를 넘어선 차원")
+    ) {
+      return "TP감전";
+    }
+
+    if (
+      access.slotName === "팔찌" &&
+      access.itemName.includes("생명이 담긴 가죽 토시")
+    ) {
+      return "감전";
+    }
+    if (
+      access.itemName.includes("억제된 마력의 팔찌") &&
+      (armor.itemName.includes("딥 다이버 슈즈") ||
+        armor.itemName.includes("사이버틱 스피드 부츠"))
+    ) {
+      return "공칸";
+    }
+
+    if (access.itemName.includes("억제된 마력의 팔찌")) {
+      return "아칸";
+    }
+
+    if (access.itemName.includes("파워 네비게이트 팩")) {
+      return "짭칸";
+    }
+
+    return "알 수 없는 세팅";
+  }
   function displayResults(equipment) {
     const weaponStats = document.getElementById("weapon-stats");
     const armorStats = document.getElementById("armor-stats");
     const accessStats = document.getElementById("accessory-stats");
     const specialStats = document.getElementById("special-stats");
+    const setEquipmentDiv = document.getElementById("set-equipment");
 
     weaponStats.innerHTML = "";
     armorStats.innerHTML = "";
     accessStats.innerHTML = "";
     specialStats.innerHTML = "";
+    setEquipmentDiv.innerHTML = "";
 
     const weapons = equipment.filter((item) => item.itemType === "무기");
     weapons.forEach((weapon) => {
@@ -284,6 +351,28 @@ document.addEventListener("DOMContentLoaded", function () {
       itemDiv.innerHTML = `${special.itemName} - <span class="font-bold">${evaluation}</span>`;
       specialStats.appendChild(itemDiv);
     });
+
+    if (weapons.length > 0 && access.length > 0 && armors.length > 0) {
+      const weapon = weapons[0];
+      const accesss = access[1];
+      const armor = armors[3];
+
+      const setName = checkSetName(weapon, accesss, armor);
+
+      const setDiv = document.createElement("div");
+      setDiv.classList.add(
+        "p-8",
+        "bg-gray-700",
+        "rounded-lg",
+        "mb-2",
+        "flex",
+        "justify-center",
+        "items-center"
+      );
+      setDiv.innerHTML = `<span class="font-bold text-xl text-center">${setName}</span>`;
+      setEquipmentDiv.appendChild(setDiv);
+    }
+
     document.getElementById("results-container").classList.remove("hidden");
   }
 
@@ -300,19 +389,148 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function fetchData(server, characterName) {
     const url = `/api/fetchData?server=${server}&characterName=${characterName}`;
-    fetch(url)
+    return fetch(url)
       .then((response) => response.json())
       .then((data) => {
         if (data.message) {
           showError(data.message);
+          return null;
         } else {
           showError(null);
-          displayResults(data);
+          return data;
         }
       })
-      .catch((error) => showError("API 호출에 실패했습니다." + error));
+      .catch((error) => {
+        showError("API 호출에 실패했습니다." + error);
+        return null;
+      });
   }
 
+  function formatKoreanNumber(number) {
+    const cleanNumberStr =
+      typeof number === "string" ? number.replace(/,/g, "") : number.toString();
+
+    const koreanUnits = ["", "만", "억", "조"];
+
+    const bigIntNumber = BigInt(cleanNumberStr);
+
+    const groups = [];
+
+    let remainingNumber = bigIntNumber;
+    while (remainingNumber > 0n) {
+      const group = remainingNumber % 10000n;
+      groups.unshift(group);
+
+      remainingNumber = remainingNumber / 10000n;
+    }
+
+    const koreanFormatted = groups
+      .map((group, index) => {
+        const groupNum = Number(group);
+
+        return groupNum > 0
+          ? `${groupNum.toLocaleString().replace(/,/g, "")}${
+              koreanUnits[groups.length - index - 1]
+            }`
+          : "";
+      })
+      .filter((part) => part !== "")
+      .slice(0, 2)
+      .join(" ");
+
+    return koreanFormatted;
+  }
+
+  function fetchDundamData(server, characterName, characterId) {
+    fetch("/api/postToDundam", {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Content-Type": "application/json",
+        Origin: "https://dundam.xyz",
+        Referer: "https://dundam.xyz/character",
+        "sec-ch-ua":
+          '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+      body: JSON.stringify({ server, characterName, characterId }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP 오류! 상태 코드: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const rankDamage = data.damageList.vsRanking.find(
+          (e) => e.name === "총 합"
+        ).dam;
+
+        const powerScoreElement = document.getElementById("power-score");
+        powerScoreElement.innerHTML = `${rankDamage}<br>(${formatKoreanNumber(
+          rankDamage
+        )})`;
+      })
+      .catch((error) => {
+        console.error("API 호출 중 오류 발생:", error);
+      });
+  }
+  function fetchBuffSwitchData(server, characterName) {
+    fetch(`/api/buffSwitch?server=${server}&characterName=${characterName}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("API 호출에 실패했습니다.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        displayBuffSwitchData(data);
+      })
+      .catch((error) => {
+        console.error("BuffSwitch 데이터 가져오기 실패:", error);
+      });
+  }
+
+  function displayBuffSwitchData(data) {
+    const switchBuffContainer = document.getElementById("switch-Buff");
+    switchBuffContainer.innerHTML = "";
+
+    if (data && data.length > 0) {
+      data.forEach((item) => {
+        const skillNameDiv = document.createElement("div");
+        skillNameDiv.classList.add("p-2", "bg-gray-700", "rounded-lg", "mb-2");
+        skillNameDiv.innerHTML = `<strong>${item.name}</strong> : ${item.buffLevel}`;
+
+        const buffLevelDiv = document.createElement("div");
+        buffLevelDiv.classList.add("p-2", "bg-gray-700", "rounded-lg", "mb-2");
+
+        let levelText;
+        if (item.levelDifference === 10) {
+          levelText = `버프 레벨 : +${item.levelDifference} (${item.percentage}%) - 종결`;
+        } else {
+          levelText = `버프 레벨 : ${item.levelDifference > 0 ? "+" : ""}${
+            item.levelDifference
+          } (${item.percentage}%) - 미달`;
+        }
+
+        buffLevelDiv.innerHTML = levelText;
+
+        switchBuffContainer.appendChild(skillNameDiv);
+        switchBuffContainer.appendChild(buffLevelDiv);
+      });
+    } else {
+      const noDataDiv = document.createElement("div");
+      noDataDiv.classList.add("p-2", "bg-gray-700", "rounded-lg", "mb-2");
+      switchBuffContainer.appendChild(noDataDiv);
+    }
+  }
   document.getElementById("searchBtn").addEventListener("click", handleSearch);
 
   document.addEventListener("keydown", function (event) {
@@ -321,14 +539,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  function handleSearch() {
+  async function handleSearch() {
     const serverSelect = document.querySelector("select");
     const characterInput = document.querySelector("input[type='text']");
     const server = serverSelect.value;
     const characterName = characterInput.value.trim();
 
     if (server && characterName) {
-      fetchData(server, characterName);
+      const data = await fetchData(server, characterName);
+      if (data && data.length > 0) {
+        const characterId = data[0].characterId;
+        fetchDundamData(server, characterName, characterId);
+        displayResults(data);
+
+        fetchBuffSwitchData(server, characterName);
+      } else {
+        showError("캐릭터 데이터를 가져올 수 없습니다.");
+      }
     } else {
       showError("서버와 캐릭터명을 입력해주세요.");
     }
