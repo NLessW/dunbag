@@ -8,8 +8,19 @@ const port = 3000;
 const apiKey = "wwzdQOhIa5pdbgj5zPZubOMQBhB7miR2";
 
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, "public")));
+
+const fetchCharacterId = async (server, characterName) => {
+  const charSearchUrl = `https://api.neople.co.kr/df/servers/${server}/characters?characterName=${characterName}&apikey=${apiKey}`;
+  const charSearchResponse = await axios.get(charSearchUrl);
+  if (
+    !charSearchResponse.data.rows ||
+    charSearchResponse.data.rows.length === 0
+  ) {
+    throw new Error("캐릭터를 찾을 수 없습니다.");
+  }
+  return charSearchResponse.data.rows[0].characterId;
+};
 
 app.get("/api/buffSwitch", async (req, res) => {
   const { server, characterName } = req.query;
@@ -22,39 +33,28 @@ app.get("/api/buffSwitch", async (req, res) => {
   }
 
   try {
-    const charSearchUrl = `https://api.neople.co.kr/df/servers/${server}/characters?characterName=${characterName}&apikey=${apiKey}`;
-    const charSearchResponse = await axios.get(charSearchUrl);
-
-    if (
-      !charSearchResponse.data.rows ||
-      charSearchResponse.data.rows.length === 0
-    ) {
-      return res.status(404).json({ message: "캐릭터를 찾을 수 없습니다." });
-    }
-
-    const characterId = charSearchResponse.data.rows[0].characterId;
+    const characterId = await fetchCharacterId(server, characterName);
     console.log("추출된 characterId:", characterId);
 
-    const skillBuffUrl = `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/skill/buff/equip/equipment?apikey=${apiKey}`;
-    const skillBuffResponse = await axios.get(skillBuffUrl);
-
-    const skillStyleUrl = `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/skill/style?apikey=${apiKey}`;
-    const skillStyleResponse = await axios.get(skillStyleUrl);
+    const [skillBuffResponse, skillStyleResponse] = await Promise.all([
+      axios.get(
+        `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/skill/buff/equip/equipment?apikey=${apiKey}`
+      ),
+      axios.get(
+        `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/skill/style?apikey=${apiKey}`
+      ),
+    ]);
 
     const buffSwitchResults = [];
+    const buffSkillInfo = skillBuffResponse.data.skill?.buff?.skillInfo;
 
-    if (
-      skillBuffResponse.data.skill &&
-      skillBuffResponse.data.skill.buff &&
-      skillBuffResponse.data.skill.buff.skillInfo
-    ) {
-      const buffSkillInfo = skillBuffResponse.data.skill.buff.skillInfo;
-      const skillId = buffSkillInfo.skillId;
-      const skillName = buffSkillInfo.name;
-      const buffOption = buffSkillInfo.option;
-      const buffLevel = buffOption.level;
-      const buffPercentage = buffOption.values[1];
-
+    if (buffSkillInfo) {
+      const {
+        skillId,
+        name: skillName,
+        option: { level: buffLevel, values },
+      } = buffSkillInfo;
+      const buffPercentage = values[1];
       const activeSkills = skillStyleResponse.data.skill.style.active;
       const matchingActiveSkill = activeSkills.find(
         (skill) => skill.skillId === skillId
@@ -78,12 +78,10 @@ app.get("/api/buffSwitch", async (req, res) => {
     res.json(buffSwitchResults);
   } catch (error) {
     console.error("오류:", error.message);
-    res.status(500).json({
-      message: "API 호출 실패",
-      error: error.message,
-    });
+    res.status(500).json({ message: "API 호출 실패", error: error.message });
   }
 });
+
 app.post("/api/postToDundam", async (req, res) => {
   const { server, characterName } = req.body;
 
@@ -95,17 +93,7 @@ app.post("/api/postToDundam", async (req, res) => {
   }
 
   try {
-    const charSearchUrl = `https://api.neople.co.kr/df/servers/${server}/characters?characterName=${characterName}&apikey=${apiKey}`;
-    const charSearchResponse = await axios.get(charSearchUrl);
-
-    if (
-      !charSearchResponse.data.rows ||
-      charSearchResponse.data.rows.length === 0
-    ) {
-      return res.status(404).json({ message: "캐릭터를 찾을 수 없습니다." });
-    }
-
-    const characterId = charSearchResponse.data.rows[0].characterId;
+    const characterId = await fetchCharacterId(server, characterName);
     console.log("추출된 characterId:", characterId);
 
     const url = `https://dundam.xyz/dat/viewData.jsp?image=${characterId}&server=${server}`;
@@ -130,10 +118,9 @@ app.post("/api/postToDundam", async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error("오류:", error.message);
-    res.status(500).json({
-      message: "Dundam API 호출 실패",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Dundam API 호출 실패", error: error.message });
   }
 });
 
@@ -145,20 +132,13 @@ app.get("/api/fetchData", async (req, res) => {
   }
 
   try {
-    const url = `https://api.neople.co.kr/df/servers/${server}/characters?characterName=${characterName}&apikey=${apiKey}`;
-    const response = await axios.get(url);
-
-    if (response.data.rows && response.data.rows.length > 0) {
-      const characterId = response.data.rows[0].characterId;
-      const detailUrl = `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/equip/equipment?apikey=${apiKey}`;
-      const equipmentData = await axios.get(detailUrl);
-      return res.json(equipmentData.data.equipment);
-    } else {
-      return res.status(404).json({ message: "캐릭터를 찾을 수 없습니다." });
-    }
+    const characterId = await fetchCharacterId(server, characterName);
+    const detailUrl = `https://api.neople.co.kr/df/servers/${server}/characters/${characterId}/equip/equipment?apikey=${apiKey}`;
+    const equipmentData = await axios.get(detailUrl);
+    res.json(equipmentData.data.equipment);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "API 호출에 실패했습니다." });
+    res.status(500).json({ message: "API 호출에 실패했습니다." });
   }
 });
 
